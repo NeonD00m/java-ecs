@@ -12,16 +12,9 @@ public class Main {
 
         game.addSystem(world ->
                 System.out.println("printing component: " +
-                        ((StringComponent) world.get_single(testId, new String[]{"StringComponent"})[0]).field
+                        ((StringComponent) world.get(testId, new String[]{"StringComponent"})[0]).field
                 ))
-                .addSystem(world -> {
-                    int counter = 0;
-                    for (JECSComponent[] group : world.query(new String[]{"StringComponent"})) {
-                        counter++;
-                    }
-                    System.out.println(counter + " entities in the world currently.");
-                })
-                .addSystem(world -> System.out.println("last system running"))
+                .addSystem(world -> System.out.println(world.query(new String[]{}).length + " entities in the world currently."))
                 .startLoop();
     }
 }
