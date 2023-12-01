@@ -1,6 +1,7 @@
 package JECS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -14,14 +15,62 @@ class Entity {
     }
 }
 
+class ResizeArray {
+    Entity[] arr;
+    private int size;
+    public ResizeArray(int capacity) {
+        arr = new Entity[capacity];
+        size = 0;
+    }
+
+    public Entity get(int index) {
+        return arr[index];
+    }
+
+    public int next() {
+        int index = size;
+        while (size >= arr.length || arr[size] != null) {
+            index++;
+        }
+        return index;
+    }
+
+    public void add(Entity value) {
+        if (size == arr.length) {
+            resize(2);
+        }
+        while (arr[size] != null) {
+            size++;
+        }
+        arr[size++] = value;
+    }
+
+    public void set(int index, Entity value) {
+        if (arr.length <= index) {
+            resize(1 + Math.floorDiv(index, arr.length));
+        }
+        arr[index] = value;
+    }
+
+    public void remove(int index) {
+        arr[index] = null;
+    }
+
+    private void resize(int multi) {
+        Entity[] old = arr;
+        arr = new Entity[old.length * multi];
+        System.arraycopy(old, 0, arr, 0, old.length);
+    }
+}
+
 public class JECS implements ECSInterface {
-    ArrayList<Entity> world;
+    ResizeArray world;
     LinkedList<ECSSystem> systems;
     int nextEntity;
 
     public JECS() {
         systems = new LinkedList<>();
-        world = new ArrayList<>(10);
+        world = new ResizeArray(10);
         nextEntity = 0;
     }
 
@@ -42,24 +91,21 @@ public class JECS implements ECSInterface {
         world.get(id).classNameToComponent.remove(componentName);
     }
 
-    public JECSComponent[] get(int id, String[] components) {
-        return new JECSComponent[0];
-    }
-
-    public JECSComponent[] get_single(int id, String[] components) {
-        return new JECSComponent[0];
-    }
-
     public int spawn(JECSComponent[] list) {
-        return this.spawnAt(nextEntity++, list);
+        int id = world.next();
+        world.add(new Entity(id));
+        for (JECSComponent componentInstance : list) {
+            insert(id, componentInstance);
+        }
+        return id;
     }
 
     public int spawnAt(int id, JECSComponent[] list) {
-        if (world.get(id) == null) {
+        if (world.get(id) != null) {
             System.out.println("Attempted to spawn entity at index " + id +
                     " when an entity at that index already existed.");
         } else {
-            world.set(id,new Entity(id));
+            world.set(id, new Entity(id));
         }
         for (JECSComponent componentInstance : list) {
             insert(id, componentInstance);
@@ -70,7 +116,6 @@ public class JECS implements ECSInterface {
     public void insert(int entityId, JECSComponent componentInstance) {
         Entity entity = world.get(entityId);
         String name = componentInstance.className();
-        System.out.println("inserting comp: " + name);
         if (entity.classNameToComponent.containsKey(name)) {
             System.out.println("YOU ALREADY INSERTED THIS COMPONENT DUMMY");
             return;
@@ -92,7 +137,8 @@ public class JECS implements ECSInterface {
 
     public JECSComponent[][] query(String[] components) {
         ArrayList<JECSComponent[]> list = new ArrayList<>(components.length);
-        for (Entity ent : world) {
+        for (Entity ent : world.arr) {
+            if (ent == null) { continue; }
             JECSComponent[] arr = new JECSComponent[components.length];
             boolean skip = false;
             for (int i = 0; i < components.length; i++) {
@@ -112,5 +158,45 @@ public class JECS implements ECSInterface {
             results[i] = list.get(i);
         }
         return results;
+    }
+
+    public JECSComponent[] get(int id, String[] components) {
+        Entity ent = world.get(id);
+        if (ent == null) {
+            return new JECSComponent[0];
+        }
+        JECSComponent[] arr = new JECSComponent[components.length];
+        for (int i = 0; i < components.length; i++) {
+            String compName = components[i];
+            JECSComponent comp = ent.classNameToComponent.get(compName);
+            if (comp == null) {
+                return new JECSComponent[0];
+            }
+            arr[i] = comp;
+        }
+        JECSComponent[] results = new JECSComponent[components.length];
+        System.arraycopy(arr, 0, results, 0, components.length);
+        return results;
+    }
+
+    public JECSComponent[] get_single(String[] components) {
+        for (Entity ent : world.arr) {
+            JECSComponent[] arr = new JECSComponent[components.length];
+            boolean skip = false;
+            for (int i = 0; i < components.length; i++) {
+                String compName = components[i];
+                JECSComponent comp = ent.classNameToComponent.get(compName);
+                if (comp == null) {
+                    skip = true;
+                    break;
+                }
+                arr[i] = comp;
+            }
+            if (skip) { continue; }
+            JECSComponent[] results = new JECSComponent[components.length];
+            System.arraycopy(arr, 0, results, 0, components.length);
+            return results;
+        }
+        return new JECSComponent[0];
     }
 }
