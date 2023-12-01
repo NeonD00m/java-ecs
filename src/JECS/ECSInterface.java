@@ -6,7 +6,7 @@ public interface ECSInterface {
     void remove(int id, String componentName);
     JECSComponent[][] query(String[] components);
     JECSComponent[] get(int id, String[] components);
-    JECSComponent[] get_single(int id, String[] components);
+    JECSComponent[] get_single(String[] components);
     int spawn(JECSComponent[] list);
     int spawnAt(int id, JECSComponent[] list);
     void insert(int entityId, JECSComponent componentInstance);
