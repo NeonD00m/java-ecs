@@ -1,7 +1,8 @@
 package JECS;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -67,6 +68,7 @@ public class JECS implements ECSInterface {
     ResizeArray world;
     LinkedList<ECSSystem> systems;
     int nextEntity;
+    Timer loop;
 
     public JECS() {
         systems = new LinkedList<>();
@@ -80,7 +82,7 @@ public class JECS implements ECSInterface {
 //    }
 
     public boolean contains(int id) {
-        return world.get(id) != null;
+        return id >= 0 && world.get(id) != null;
     }
 
     public void despawn(int id) {
@@ -117,17 +119,23 @@ public class JECS implements ECSInterface {
         Entity entity = world.get(entityId);
         String name = componentInstance.className();
         if (entity.classNameToComponent.containsKey(name)) {
-            System.out.println("YOU ALREADY INSERTED THIS COMPONENT DUMMY");
+            System.out.println("Already inserted a component of "+name+" to the entity: "+entityId+".");
             return;
         }
         entity.classNameToComponent.put(name, componentInstance);
     }
 
     public void startLoop() {
-        //right now it only calls the systems once, only steps the loop once
-        for (ECSSystem system : systems) {
-            system.loop(this);
+        if (loop != null) {
+            return;
         }
+        loop = new Timer();
+        loop.scheduleAtFixedRate(new LoopTimerTask(this, systems), 0, 17);
+    }
+
+    public void quit() {
+        loop.cancel();
+        loop = null;
     }
 
     public ECSInterface addSystem(ECSSystem system) {
@@ -163,7 +171,7 @@ public class JECS implements ECSInterface {
     public JECSComponent[] get(int id, String[] components) {
         Entity ent = world.get(id);
         if (ent == null) {
-            return new JECSComponent[0];
+            return null;
         }
         JECSComponent[] arr = new JECSComponent[components.length];
         for (int i = 0; i < components.length; i++) {
@@ -179,8 +187,9 @@ public class JECS implements ECSInterface {
         return results;
     }
 
-    public JECSComponent[] get_single(String[] components) {
+    public JECSComponent[] getSingle(String[] components) {
         for (Entity ent : world.arr) {
+            if (ent == null) {continue;}
             JECSComponent[] arr = new JECSComponent[components.length];
             boolean skip = false;
             for (int i = 0; i < components.length; i++) {
@@ -197,6 +206,23 @@ public class JECS implements ECSInterface {
             System.arraycopy(arr, 0, results, 0, components.length);
             return results;
         }
-        return new JECSComponent[0];
+        return null;
+    }
+
+    public int getSingleByIndex(String[] components) {
+        for (Entity ent : world.arr) {
+            if (ent == null) {continue;}
+            boolean skip = false;
+            for (String compName : components) {
+                JECSComponent comp = ent.classNameToComponent.get(compName);
+                if (comp == null) {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) { continue; }
+            return ent.id;
+        }
+        return -1;
     }
 }
