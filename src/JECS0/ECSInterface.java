@@ -1,4 +1,4 @@
-package JECS;
+package JECS0;
 
 public interface ECSInterface {
     boolean contains(int id);

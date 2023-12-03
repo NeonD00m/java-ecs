@@ -1,6 +1,6 @@
 package Test;
 
-import JECS.JECSComponent;
+import JECS0.JECSComponent;
 
 public class HealthComponent extends JECSComponent {
     int health;

@@ -1,6 +1,6 @@
 package Test;
 
-import JECS.JECSComponent;
+import JECS0.JECSComponent;
 
 public class LumberjackComponent extends JECSComponent {
     int treeId = -1; // used with world.contains()

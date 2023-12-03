@@ -1,9 +1,7 @@
 package Test;
 
-import JECS.JECS;
-import JECS.JECSComponent;
-import JECS.ECSSystem;
-import JECS.ECSInterface;
+import JECS0.JECS;
+import JECS0.JECSComponent;
 
 public class Main {
     public static void main(String[] args) {

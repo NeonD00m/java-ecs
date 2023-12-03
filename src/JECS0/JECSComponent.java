@@ -1,4 +1,4 @@
-package JECS;
+package JECS0;
 
 public class JECSComponent {
     public String className() {
