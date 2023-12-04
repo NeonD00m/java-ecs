@@ -1,77 +1,19 @@
-package JECS0;
+package JECS;
 
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-class Entity {
-    int id;
-    HashMap<String, JECSComponent> classNameToComponent;
-
-    public Entity(int id) {
-        this.id = id;
-        classNameToComponent = new HashMap<>();
-    }
-}
-
-class ResizeArray {
-    Entity[] arr;
-    private int size;
-    public ResizeArray(int capacity) {
-        arr = new Entity[capacity];
-        size = 0;
-    }
-
-    public Entity get(int index) {
-        return arr[index];
-    }
-
-    public int next() {
-        int index = size;
-        while (size >= arr.length || arr[size] != null) {
-            index++;
-        }
-        return index;
-    }
-
-    public void add(Entity value) {
-        if (size == arr.length) {
-            resize(2);
-        }
-        while (arr[size] != null) {
-            size++;
-        }
-        arr[size++] = value;
-    }
-
-    public void set(int index, Entity value) {
-        if (arr.length <= index) {
-            resize(1 + Math.floorDiv(index, arr.length));
-        }
-        arr[index] = value;
-    }
-
-    public void remove(int index) {
-        arr[index] = null;
-    }
-
-    private void resize(int multi) {
-        Entity[] old = arr;
-        arr = new Entity[old.length * multi];
-        System.arraycopy(old, 0, arr, 0, old.length);
-    }
-}
-
-public class JECS implements ECSInterface {
-    ResizeArray world;
+public class SimpleJECS implements ECSInterface {
+    ResizeArray<Entity<HashMap<String, JECSComponent>>> world;
     LinkedList<ECSSystem> systems;
     int nextEntity;
     Timer loop;
 
-    public JECS() {
+    public SimpleJECS() {
         systems = new LinkedList<>();
-        world = new ResizeArray(10);
+        world = new ResizeArray<Entity<HashMap<String, JECSComponent>>>(10, Entity[]::new);
         nextEntity = 0;
     }
 
@@ -89,12 +31,12 @@ public class JECS implements ECSInterface {
     }
 
     public void remove(int id, String componentName) {
-        world.get(id).classNameToComponent.remove(componentName);
+        world.get(id).components.remove(componentName);
     }
 
     public int spawn(JECSComponent[] list) {
         int id = world.next();
-        world.add(new Entity(id));
+        world.add(new Entity<>(id, new HashMap<>()));
         for (JECSComponent componentInstance : list) {
             insert(id, componentInstance);
         }
@@ -106,7 +48,7 @@ public class JECS implements ECSInterface {
             System.out.println("Attempted to spawn entity at index " + id +
                     " when an entity at that index already existed.");
         } else {
-            world.set(id, new Entity(id));
+            world.set(id, new Entity<>(id, new HashMap<>()));
         }
         for (JECSComponent componentInstance : list) {
             insert(id, componentInstance);
@@ -115,13 +57,13 @@ public class JECS implements ECSInterface {
     }
 
     public void insert(int entityId, JECSComponent componentInstance) {
-        Entity entity = world.get(entityId);
+        Entity<HashMap<String, JECSComponent>> entity = world.get(entityId);
         String name = componentInstance.className();
-        if (entity.classNameToComponent.containsKey(name)) {
+        if (entity.components.containsKey(name)) {
             System.out.println("Already inserted a component of "+name+" to the entity: "+entityId+".");
             return;
         }
-        entity.classNameToComponent.put(name, componentInstance);
+        entity.components.put(name, componentInstance);
     }
 
     public void startLoop() {
@@ -144,13 +86,13 @@ public class JECS implements ECSInterface {
 
     public JECSComponent[][] query(String[] components) {
         ArrayList<JECSComponent[]> list = new ArrayList<>(components.length);
-        for (Entity ent : world.arr) {
+        for (Entity<HashMap<String,JECSComponent>> ent : world.arr) {
             if (ent == null) { continue; }
             JECSComponent[] arr = new JECSComponent[components.length];
             boolean skip = false;
             for (int i = 0; i < components.length; i++) {
                 String compName = components[i];
-                JECSComponent comp = ent.classNameToComponent.get(compName);
+                JECSComponent comp = ent.components.get(compName);
                 if (comp == null) {
                     skip = true;
                     break;
@@ -168,14 +110,14 @@ public class JECS implements ECSInterface {
     }
 
     public JECSComponent[] get(int id, String[] components) {
-        Entity ent = world.get(id);
+        Entity<HashMap<String, JECSComponent>> ent = world.get(id);
         if (ent == null) {
             return null;
         }
         JECSComponent[] arr = new JECSComponent[components.length];
         for (int i = 0; i < components.length; i++) {
             String compName = components[i];
-            JECSComponent comp = ent.classNameToComponent.get(compName);
+            JECSComponent comp = ent.components.get(compName);
             if (comp == null) {
                 return new JECSComponent[0];
             }
@@ -187,13 +129,13 @@ public class JECS implements ECSInterface {
     }
 
     public JECSComponent[] getSingle(String[] components) {
-        for (Entity ent : world.arr) {
+        for (Entity<HashMap<String, JECSComponent>> ent : world.arr) {
             if (ent == null) {continue;}
             JECSComponent[] arr = new JECSComponent[components.length];
             boolean skip = false;
             for (int i = 0; i < components.length; i++) {
                 String compName = components[i];
-                JECSComponent comp = ent.classNameToComponent.get(compName);
+                JECSComponent comp = ent.components.get(compName);
                 if (comp == null) {
                     skip = true;
                     break;
@@ -209,11 +151,11 @@ public class JECS implements ECSInterface {
     }
 
     public int getSingleByIndex(String[] components) {
-        for (Entity ent : world.arr) {
+        for (Entity<HashMap<String, JECSComponent>> ent : world.arr) {
             if (ent == null) {continue;}
             boolean skip = false;
             for (String compName : components) {
-                JECSComponent comp = ent.classNameToComponent.get(compName);
+                JECSComponent comp = ent.components.get(compName);
                 if (comp == null) {
                     skip = true;
                     break;

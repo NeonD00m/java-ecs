@@ -1,11 +1,11 @@
 package Test;
 
-import JECS0.JECS;
-import JECS0.JECSComponent;
+import JECS.SimpleJECS;
+import JECS.JECSComponent;
 
 public class Main {
     public static void main(String[] args) {
-        JECS game = new JECS();
+        SimpleJECS game = new SimpleJECS();
         int testId = game.spawn(new JECSComponent[]{
                 new StringComponent("Tree"),
                 new HealthComponent(5),

@@ -1,4 +1,4 @@
-package JECS0;
+package JECS;
 
 public interface ECSSystem {
     void loop(ECSInterface world);

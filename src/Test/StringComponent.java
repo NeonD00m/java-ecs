@@ -1,6 +1,6 @@
 package Test;
 
-import JECS0.JECSComponent;
+import JECS.JECSComponent;
 
 public class StringComponent extends JECSComponent {
     String field = "Hello, World!";
