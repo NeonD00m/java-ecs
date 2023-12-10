@@ -20,7 +20,7 @@ class ResizeArray<T> {
 
     public int next() {
         int index = size;
-        while (size >= arr.length || arr[size] != null) {
+        while (index < arr.length && arr[index] != null) {
             index++;
         }
         return index;
