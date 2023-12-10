@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class SimpleJECS implements ECSInterface {
-    ResizeArray<Entity<HashMap<String, JECSComponent>>> world;
+    ResizeArray<Entity<HashMap<String, JECSComponent>>> world; // world[TYPE ID][ENTITY ID]
     LinkedList<ECSSystem> systems;
     int nextEntity;
     Timer loop;
@@ -123,9 +123,7 @@ public class SimpleJECS implements ECSInterface {
             }
             arr[i] = comp;
         }
-        JECSComponent[] results = new JECSComponent[components.length];
-        System.arraycopy(arr, 0, results, 0, components.length);
-        return results;
+        return arr;
     }
 
     public JECSComponent[] getSingle(String[] components) {
@@ -143,9 +141,7 @@ public class SimpleJECS implements ECSInterface {
                 arr[i] = comp;
             }
             if (skip) { continue; }
-            JECSComponent[] results = new JECSComponent[components.length];
-            System.arraycopy(arr, 0, results, 0, components.length);
-            return results;
+            return arr;
         }
         return null;
     }
