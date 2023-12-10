@@ -1,23 +1,32 @@
 package Test;
 
+import JECS.ECSInterface;
 import JECS.SimpleJECS;
+import JECS.BitmaskJECS;
 import JECS.JECSComponent;
 
 public class Main {
     public static void main(String[] args) {
-        SimpleJECS game = new SimpleJECS();
-        int testId = game.spawn(new JECSComponent[]{
+        //SWAP OUT ECS IMPLEMENTATIONS
+        System.out.println("starting");
+//        SimpleJECS game = new SimpleJECS();
+        BitmaskJECS game = new BitmaskJECS();
+        System.out.println("instantiated");
+        game.component("LumberjackComponent");
+        game.component("HealthComponent");
+        game.component("StringComponent");
+        System.out.println("registered");
+
+        // TEST SIMULATION
+        game.spawn(new JECSComponent[]{
                 new StringComponent("Tree"),
                 new HealthComponent(5),
         });
+        System.out.println("spawned tree");
         System.out.println("LJ ID: " + game.spawn(new JECSComponent[]{
                 new LumberjackComponent()
         }));
         game
-//                .addSystem(world ->
-//                    System.out.println("printing component: " +
-//                        ((StringComponent) world.get(testId, new String[]{"StringComponent"})[0]).field
-//                ))
                 .addSystem(world -> {
                     LumberjackComponent person = (LumberjackComponent) world.getSingle(new String[]{"LumberjackComponent"})[0];
                     if (!world.contains(person.treeId)) {
