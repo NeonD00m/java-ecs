@@ -75,7 +75,7 @@ class Archetype {
 public class ArchetypeJECS {
     //ComponentId: String, EntityId: Integer, ArchetypeId: Integer
     HashMap<HashVector, Archetype> archetype_index;
-    HashMap<Integer, EntityRecord> entity_index; // could be a ResizeArray
+    HashMap<Integer, EntityRecord> entity_index; //TODO: change to ResizeArray
     HashMap<String, HashMap<Integer, ArchetypeRecord>> component_index;
 
     public ArchetypeJECS() {
@@ -87,6 +87,7 @@ public class ArchetypeJECS {
     //PRIVATE METHODS
     //initiate archetypes lazily: adds a component column to an existing archetype
     private Archetype addToArchetype(Archetype source, String componentId) {
+        //TODO: ARCHETYPE MIGHT ALREADY EXIST BUT NOT HAVE THE EDGE NEEDED
         Archetype created = new Archetype(source.type.add(componentId), archetype_index.size());
         archetype_index.put(created.type, created);
         source.edges.put(componentId, new ArchetypeEdge(created, null));
@@ -121,12 +122,12 @@ public class ArchetypeJECS {
     }
 
     //PUBLIC METHODS
-    public JECSComponent get(int entityId, String component) {
-        EntityRecord entityRecord = entity_index.get(entityId);
-        Archetype archetype = entityRecord.archetype;
-        HashMap<Integer, ArchetypeRecord> archetypes = component_index.get(component);
-        ArchetypeRecord archetypeRecord = archetypes.get(archetype.id);
-        return archetype.columns[archetypeRecord.column][entityRecord.row];
+    public int spawn(JECSComponent[] list) {
+        //TODO: make the entity spawn, initially as archetype []
+        return -1;
+    }
+    public boolean contains(int entityId) {
+        return entity_index.containsKey(entityId);
     }
     public void insert(int entityId, JECSComponent componentInstance) {
         String component = componentInstance.className();
@@ -141,10 +142,20 @@ public class ArchetypeJECS {
         int column = component_index.get(component).get(nextArchetype.id).column;
         nextArchetype.columns[column][entityRecord.row] = componentInstance;
     }
+    public void despawn(int entityId) {
+        //TODO: remove entity from entity_index and the archetype
+    }
     public void remove(int entityId, String componentName) {
         EntityRecord entityRecord = entity_index.get(entityId);
         Archetype archetype = entityRecord.archetype;
         Archetype nextArchetype = archetype.edges.get(componentName).remove;
         moveEntity(entityId, archetype, entityRecord.row, nextArchetype);
+    }
+    public JECSComponent get(int entityId, String component) {
+        EntityRecord entityRecord = entity_index.get(entityId);
+        Archetype archetype = entityRecord.archetype;
+        HashMap<Integer, ArchetypeRecord> archetypes = component_index.get(component);
+        ArchetypeRecord archetypeRecord = archetypes.get(archetype.id);
+        return archetype.columns[archetypeRecord.column][entityRecord.row];
     }
 }
