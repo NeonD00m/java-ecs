@@ -47,7 +47,7 @@ class EntityRecord {Archetype archetype; int row;
 // archetype record
 class ArchetypeRecord {int column; public ArchetypeRecord(int c) {column = c;}}
 // archetype edge for the archetype graph
-class ArchetypeEdge {Archetype add; Archetype remove;
+class ArchetypeEdge {final Archetype add; final Archetype remove;
     public ArchetypeEdge(Archetype a, Archetype r){add = a;remove = r;}}
 // the archetypes themselves with all the components involved
 class Archetype {
@@ -56,20 +56,26 @@ class Archetype {
     HashVector type;
     JECSComponent[][] columns;
     HashMap<String, ArchetypeEdge> edges;
-
     public Archetype(HashVector componentTypes, int aId) {
         id = aId;
         type = componentTypes;
         edges = new HashMap<>();
         columns = new JECSComponent[componentTypes.size()][ROWS];
-        //columns = new ResizeArray<JECSComponent>[components.size()][10, JECSComponent[]::new]
+    }
+
+    public void expand() {
+        JECSComponent[][] oldColumns = columns;
+        columns = new JECSComponent[oldColumns.length][oldColumns[0].length * 2];
+        for (int col = 0; col < oldColumns.length; col++) {
+            System.arraycopy(oldColumns[col], 0, columns[col], 0, oldColumns[0].length);
+        }
     }
 }
 
 public class ArchetypeJECS {
     //ComponentId: String, EntityId: Integer, ArchetypeId: Integer
     HashMap<HashVector, Archetype> archetype_index;
-    HashMap<Integer, EntityRecord> entity_index;
+    HashMap<Integer, EntityRecord> entity_index; // could be a ResizeArray
     HashMap<String, HashMap<Integer, ArchetypeRecord>> component_index;
 
     public ArchetypeJECS() {
@@ -94,7 +100,7 @@ public class ArchetypeJECS {
         int rowFound = nextArchetype.columns.length;
         for (int i = 0; i <= nextArchetype.columns.length; i++) {
             if (i == nextArchetype.columns.length) {
-                expandArchetype(nextArchetype);
+                nextArchetype.expand();
             } else if (nextArchetype.columns[0][i] == null) {
                 rowFound = i;
                 break;
@@ -113,10 +119,6 @@ public class ArchetypeJECS {
             nextArchetype.columns[archetypeRecord.column][rowFound] = component;
         }
     }
-    // expand the 2D array along the row axis to make space for new entities
-    private void expandArchetype(Archetype archetype) {
-        
-    }
 
     //PUBLIC METHODS
     public JECSComponent get(int entityId, String component) {
@@ -126,7 +128,6 @@ public class ArchetypeJECS {
         ArchetypeRecord archetypeRecord = archetypes.get(archetype.id);
         return archetype.columns[archetypeRecord.column][entityRecord.row];
     }
-
     public void insert(int entityId, JECSComponent componentInstance) {
         String component = componentInstance.className();
         EntityRecord entityRecord = entity_index.get(entityId);
@@ -139,5 +140,11 @@ public class ArchetypeJECS {
         // add componentInstance to new archetype
         int column = component_index.get(component).get(nextArchetype.id).column;
         nextArchetype.columns[column][entityRecord.row] = componentInstance;
+    }
+    public void remove(int entityId, String componentName) {
+        EntityRecord entityRecord = entity_index.get(entityId);
+        Archetype archetype = entityRecord.archetype;
+        Archetype nextArchetype = archetype.edges.get(componentName).remove;
+        moveEntity(entityId, archetype, entityRecord.row, nextArchetype);
     }
 }
