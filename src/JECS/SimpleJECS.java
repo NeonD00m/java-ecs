@@ -102,11 +102,7 @@ public class SimpleJECS implements ECSInterface {
             if (skip) { continue; }
             list.add(arr);
         }
-        JECSComponent[][] results = new JECSComponent[list.size()][components.length];
-        for (int i = 0; i < list.size(); i++) {
-            results[i] = list.get(i);
-        }
-        return results;
+        return list.toArray(new JECSComponent[list.size()][components.length]);
     }
 
     public JECSComponent[] get(int id, String[] components) {
