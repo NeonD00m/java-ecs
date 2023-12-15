@@ -1,16 +1,14 @@
 package Test;
 
-import JECS.ECSInterface;
-import JECS.SimpleJECS;
-import JECS.BitmaskJECS;
-import JECS.JECSComponent;
+import JECS.*;
 
 public class Main {
     public static void main(String[] args) {
         //SWAP OUT ECS IMPLEMENTATIONS
         System.out.println("starting");
 //        SimpleJECS game = new SimpleJECS();
-        BitmaskJECS game = new BitmaskJECS();
+//        BitmaskJECS game = new BitmaskJECS();
+        ArchetypeJECS game = new ArchetypeJECS();
         System.out.println("instantiated");
         game.component("LumberjackComponent");
         game.component("HealthComponent");
@@ -27,6 +25,9 @@ public class Main {
                 new LumberjackComponent()
         }));
         game
+//                .addSystem(world -> {
+//                    /*do something*/
+//                })
                 .addSystem(world -> {
                     LumberjackComponent person = (LumberjackComponent) world.getSingle(new String[]{"LumberjackComponent"})[0];
                     if (!world.contains(person.treeId)) {
