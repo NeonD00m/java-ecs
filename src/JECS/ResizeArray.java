@@ -13,11 +13,8 @@ class ResizeArray<T> {
         this.constructor = constructor;
         size = 0;
     }
-
-    public T get(int index) {
-        return arr[index];
-    }
-
+    public T get(int index) { return arr[index]; }
+    public boolean containsKey(int index) { return arr[index] != null; }
     public int next() {
         int index = size;
         while (index < arr.length && arr[index] != null) {
@@ -25,7 +22,6 @@ class ResizeArray<T> {
         }
         return index;
     }
-
     public void add(T value) {
         if (size == arr.length) {
             resize(2);
@@ -42,11 +38,9 @@ class ResizeArray<T> {
         }
         arr[index] = value;
     }
-
     public void remove(int index) {
         arr[index] = null;
     }
-
     private void resize(int multi) {
         T[] old = arr;
         arr = constructor.construct(old.length * multi);
